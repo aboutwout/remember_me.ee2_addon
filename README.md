@@ -47,6 +47,6 @@ The :set method can be used anywhere and do not affect page output, but can also
     {exp:remember_me:clear channel='products'}
 
     // It can also be used in conjunction with the {exp:channel:entries} loop
-    {exp:weblog:entries entry_id="{exp:remember_me:get channel='producten' parse='inward'}" parse='inward' dynamic='off'}
+    {exp:channel:entries entry_id="{exp:remember_me:get channel='producten' parse='inward'}" parse='inward' dynamic='off'}
       {title}<br />
     {/exp:channel:entries}
