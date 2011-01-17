@@ -252,12 +252,11 @@ class Remember_me {
   
   function _redirect()
   {
-    global $FNS;
     
     // If return URL has been set and it is not an Ajax call, redirect
     if($this->_return && !isset($_SERVER['X_HTTP_REQUESTED_WITH']) )
     {
-      $FNS->redirect( $this->EE->functions->create_url($this->_return) );
+      $this->EE->functions->redirect( $this->EE->functions->create_url($this->_return) );
     }
     
   }
