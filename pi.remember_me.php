@@ -7,7 +7,7 @@ if (session_id() == '')
 
 $plugin_info = array(
 	'pi_name'			=> 'Remember Me',
-	'pi_version'		=> '0.9.1',
+	'pi_version'		=> '0.9.2',
 	'pi_author'			=> 'Wouter Vervloet',
 	'pi_author_url'		=> 'http://www.baseworks.nl/',
 	'pi_description'	=> 'Save entries for a user to do something with them on (another) page.',
@@ -18,7 +18,7 @@ $plugin_info = array(
 * Remember Me Plugin class 
 *
 * @package		  remember_me.ee2_addon
-* @version			0.9.1
+* @version			0.9.2
 * @author			  Wouter Vervloet <wouter@baseworks.nl>
 * @license			http://creativecommons.org/licenses/by-sa/3.0/
 */
@@ -195,8 +195,6 @@ class Remember_me {
       $this->_save_storage();
     }
     
-    $this->_redirect();
-    
 	}
 	// END _clear_entry
 	
@@ -208,7 +206,6 @@ class Remember_me {
 
     $this->_save_storage();
     
-    $this->_redirect();    
 	  
 	}
 	// END _clear_all
@@ -234,7 +231,6 @@ class Remember_me {
         
     $this->_save_storage();
     
-    $this->_redirect();
     
   }
 	// END _clear_where_channel
@@ -247,6 +243,8 @@ class Remember_me {
 
     // Save storage to cookie    
     $_SESSION['remember_me'] = $this->_storage;
+    
+    $this->_redirect();    
       
   }
   
@@ -269,7 +267,6 @@ class Remember_me {
 	* @return	mixed [integer|boolean]
 	*/
   function _entry_exists($in = false, $return_id=false) {
-
 
     if($in === false)
     {
