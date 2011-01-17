@@ -7,7 +7,7 @@ if (session_id() == '')
 
 $plugin_info = array(
 	'pi_name'			=> 'Remember Me',
-	'pi_version'		=> '0.9',
+	'pi_version'		=> '0.9.1',
 	'pi_author'			=> 'Wouter Vervloet',
 	'pi_author_url'		=> 'http://www.baseworks.nl/',
 	'pi_description'	=> 'Save entries for a user to do something with them on (another) page.',
@@ -18,7 +18,7 @@ $plugin_info = array(
 * Remember Me Plugin class 
 *
 * @package		  remember_me.ee2_addon
-* @version			0.9
+* @version			0.9.1
 * @author			  Wouter Vervloet <wouter@baseworks.nl>
 * @license			http://creativecommons.org/licenses/by-sa/3.0/
 */
