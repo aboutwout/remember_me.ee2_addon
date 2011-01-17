@@ -132,9 +132,7 @@ class Remember_me {
 	  else
 	  {
       $this->_clear_all();	    
-	  }
-    
-    $this->_redirect();
+	  }	  
 
 	}
 	// END clear
@@ -243,7 +241,7 @@ class Remember_me {
 
     // Save storage to cookie    
     $_SESSION['remember_me'] = $this->_storage;
-    
+        
     $this->_redirect();    
       
   }
