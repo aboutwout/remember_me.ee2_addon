@@ -335,6 +335,9 @@ class Remember_me {
 
       // Get entries belonging to a certain channel from storage
       {exp:remember_me:get channel='producten'}<br />
+      
+      // Retrieve saved entries in a reversed order
+      {exp:remember_me:get reverse='yes'}<br />
 
       // Check if a certain entry is in storage
       {if {exp:remember_me:get entry_id='61'}}
