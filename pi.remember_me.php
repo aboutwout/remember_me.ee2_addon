@@ -7,7 +7,7 @@ if (session_id() == '')
 
 $plugin_info = array(
 	'pi_name'			=> 'Remember Me',
-	'pi_version'		=> '0.9.2',
+	'pi_version'		=> '0.9.3',
 	'pi_author'			=> 'Wouter Vervloet',
 	'pi_author_url'		=> 'http://www.baseworks.nl/',
 	'pi_description'	=> 'Save entries for a user to do something with them on (another) page.',
@@ -18,7 +18,7 @@ $plugin_info = array(
 * Remember Me Plugin class 
 *
 * @package		  remember_me.ee2_addon
-* @version			0.9.2
+* @version			0.9.3
 * @author			  Wouter Vervloet <wouter@baseworks.nl>
 * @license			http://creativecommons.org/licenses/by-sa/3.0/
 */
@@ -71,6 +71,7 @@ class Remember_me {
     $this->_entry_id = $this->EE->TMPL->fetch_param('entry_id');
     $this->_channel = $this->EE->TMPL->fetch_param('channel');
     $this->_return = $this->EE->TMPL->fetch_param('return');
+    $this->_reverse = ($this->EE->TMPL->fetch_param('reverse') == 'yes') ? TRUE : FALSE;
     
     $this->_current_site = $this->EE->config->item('site_id');
 	}
@@ -153,7 +154,14 @@ class Remember_me {
 	function _get_all()
 	{
 	      
-    return (count($this->_storage) > 0) ? implode('|', array_keys($this->_storage)) : '';
+	  $results = array_keys($this->_storage);
+	  
+	  if( $this->_reverse === TRUE )
+    {
+      $results = array_reverse($results);
+    }
+    
+    return implode('|', $results);
     
 	}
 	// END _get_all
@@ -172,6 +180,11 @@ class Remember_me {
       {
         $results[] = $key;        
       }
+    }
+    
+    if( $this->_reverse === TRUE )
+    {
+      $results = array_reverse($results);
     }
     
     return implode('|', $results);
