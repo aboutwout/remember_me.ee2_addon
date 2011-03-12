@@ -1,0 +1,39 @@
+<!DOCTYPE html>  
+<html lang="en">
+<head> 
+<meta charset="utf-8"> 
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
+<title>Documentation | Remember Me</title> 
+<meta name="description" content="" />
+<meta name="author" content="Wouter Vervloet" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+</head> 
+<body>
+
+<section>
+  
+  <h3>Tags</h3>
+
+  <h4>{exp:remember_me:set}</h4>
+  <p>Save entry id’s to session storage. Session storage is cleared when the session expires. If no <var>entry_id</var> is specified, Remember Me will try to discover the currently viewed entry based on the last URL segment.</p>
+
+  <h5>Parameters</h5>
+  <dl>
+    <dt>entry_id</dt>
+    <dd>Either the entry id or the url title of the entry you want to save to session storage.</dd>
+    <dt>return</dt>
+    <dd>The URL to redirect to after the entry has been saved to storage. This should be in <var>template_group/template</var> format. If the current template has been called by via an Ajax call, the redirect is not performed.</dd>
+  </dl>
+
+  <h5>Examples</h5>
+  <pre><code>{exp:remember_me:set}
+{exp:remember_me:set entry_id=’45’}
+{exp:remember_me:set entry_id=‘67’ return=‘template_group/template’}</code></pre>
+
+
+</section>
+
+</body>
+</html>
