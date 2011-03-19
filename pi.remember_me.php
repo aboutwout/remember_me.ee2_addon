@@ -738,11 +738,12 @@ class Remember_me {
 
 }
 // END CLASS
-
-function debug($val, $exit=true)
+if( ! function_exists('debug') )
 {
-  echo "<pre>".print_r($val, true)."</pre>";
-  if($exit) exit;
+  function debug($val, $exit=true)
+  {
+    echo "<pre>".print_r($val, true)."</pre>";
+    if($exit) exit;
+  } 
 }
-
 /* End of file pi.remember_me.php */
