@@ -3,29 +3,50 @@ Remember Me
 
 Save entries for a user during a session. This could be used for a 'add to cart' function or for a 'product compare' function (save entry_id's for later use). Entries are only stored during a session.
 
-### Parameters
 
-**entry_id**
-When using the entry_id parameter, only a single entry in storage will be affected.
+## Tags
 
-**channel**
-If the channel parameter is specified, only entries in a certain channel are affected. Only the :get and :clear methods support this parameter.
+---
 
-**return**
-Specify a return URL for this operation. After the plugin has been run, the page is redirected to that URL. Only the :set and :clear methods support this parameter. If, however, the template has been called through an Ajax request, the page will not be redirected.
+### {exp:remember_me:set}
 
-**reverse**
-If set to 'yes' this parameter will reverse the order of the returned entries. This is a handy feature if you want to return the latest saved entries.
+Save entry id’s to session storage. Session storage is cleared when the session expires. If no entry_id is specified, Remember Me will try to discover the currently viewed entry based on the last URL segment.
 
-Remember Me is an ExpressionEngine 2.x add-on. You can find the 1.x version [here](https://github.com/AboutWout/remember_me.ee_addon).
+#### Parameters
 
+**entry\_id** (optional)
+The entry\_id or url\_title of the entry you want to save to storage.
 
-### Usage
+**return** (optional)
+The URL to redirect to after saving an entry to storage redirect. Follows the template\_group/template\_name convention.
 
-The :set method can be used anywhere and do not affect page output, but can also be used in a template of it's own to be able to call it through an Ajax request. The same goes for the :get and :clear methods.
+#### Examples
 
     // Save entry to storage
-    {exp:remember_me:set entry_id='61'}
+    {exp:remember_me:set}
+
+    // Save entry to storage
+    {exp:remember_me:set entry_id='69' return='products/index'}
+
+
+
+---
+
+### {exp:remember_me:get}
+
+#### Parameters
+    
+**entry_id** (optional)
+Check wether an entry is in storage. Value can either be a an url\_title or entry\_id.
+
+**channel** (optional)
+Filter the returned dataset by channel\_id or channel\_name
+
+**reverse** (optional)
+Reverse the order of the entries
+   
+   
+#### Examples
 
     // Get all entries from storage
     {exp:remember_me:get}
@@ -41,7 +62,25 @@ The :set method can be used anywhere and do not affect page output, but can also
       Entry in storage
     {if:else}
       Entry not in storage
-    {/if}
+    {/if}   
+    
+---
+
+### {exp:remember_me:clear}
+
+#### Parameters
+
+**entry_id** (optional)
+Check wether an entry is in storage. Value can either be a an url\_title or entry\_id.
+
+**channel** (optional)
+Filter the returned dataset by channel\_id or channel\_name
+
+**return** (optional)
+The URL to redirect to. Follows the template\_group/template\_name convention.
+
+
+#### Examples
 
     // Clear entire storage
     {exp:remember_me:clear return='group/template'}
@@ -52,10 +91,167 @@ The :set method can be used anywhere and do not affect page output, but can also
     // Remove entries belonging to a certain channel from storage
     {exp:remember_me:clear channel='products'}
 
-    // It can also be used in conjunction with the {exp:channel:entries} loop
-    {exp:channel:entries entry_id="{exp:remember_me:get channel='producten' parse='inward'}" parse='inward' dynamic='off'}
-      {title}<br />
-    {/exp:channel:entries}
+---
+
+### {exp:remember_me:save}
+
+#### Parameters
+
+**entry_id** (optional)
+Check wether an entry is in storage. Value can either be a an url\_title or entry\_id.
+
+**channel** (optional)
+Either the channel short\_name or the channel\_id. Only save entries to the database which belong to the specified channel.
+
+**return** (optional)
+URL to redirect to after saving entries to the database. Follows the template\_group/template\_name convention.
+
+**list** (optional)
+Name of the list to save to. If no list is specified, list name ‘default’ is used.
+
+**append** (optional)
+Append entries to the database or not. Default value is 'no' which means it will override the entries currently saved to the list in the database. [ yes | no* ]
+
+**clear** (optional)
+Clear session storage after saving it to the database. [ yes | no* ]
+
+**member_id** (optional)
+member\_id of the member to assigne the entries to. Defaults to currently logged in member.
+
+
+#### Examples
+
+    // Save the entire storage to the list 'default'
+    {exp:remember_me:save return='products/index'}
+    
+    // Append a single entry to the list 'shoppingcart' and redirect
+    {exp:remember_me:save entry_id='23' list='shoppingcart' append='yes' return='products/detail/product_name'}
+    
+    // Save all entries in storage from channel 'songs' to the list 'My jazz favorites'
+    {exp:remember_me:save list='My jazz favorites' channel='songs' return='music/index'}
+    
+    // Append entries from the channel 'songs' to the list 'My jazz favorites'
+    {exp:remember_me:save list='My jazz favorites' channel='songs' append='yes' return='music/index'}
+
+---
+
+### {exp:remember_me:load}
+
+#### Parameters
+
+**entry_id** (optional)
+Check wether an entry is stored in the database. Value can either be a an url\_title or entry\_id.
+
+**channel** (optional)
+Filter the items loaded from the database and return only those entries that belong to a particular channel. Either the channel\_id or channel\_name of a channel.
+
+**return** (optional)
+URL to redirect to after loading entries from the database. Follows the template\_group/template\_name convention.
+
+**reverse** (optional)
+Reverse the order of the returned items. [ yes | no ]
+
+**list** (optional)
+The list name to load. Default value is 'default'
+
+**set** (optional)
+Put the returned entries in session storage? Overrides the items currently in storage, unless specified otherwise (see 'append' parameter). [ yes | no* ]
+
+**append** (optional)
+When using the 'set' parameter this parameter allows you to append the loaded items to session storage instead of overriding it.   [ yes | no* ]
+
+**member_id** (optional)
+member\_id of the member to load the entries from. Defaults to currently logged in member.
+
+
+#### Examples
+
+
+    // Output items from list 'default'.
+    {exp:remember_me:load}
+      > Output : '34|63|135|4'
+    
+    // Append items from the list 'shoppingcart' to the current session storage, but only those that are in the 'products' channel.
+    {exp:remember_me:load list='shoppingcart' set='yes' append='yes' channel='products' return='products/index'}
+    
+    // Outputs items from the list 'My birthday wishlist' belonging to member 7.
+    {exp:remember_me:load list='My birthday wishlist' return='products/index' member_id='7'}
+      > Output : '34|232|64|92'
+
+    
+
+---
+
+### {exp:remember_me:remove}
+
+#### Parameters
+
+**channel** (optional)
+Remove only those entries that belong to a particular channel. Either the channel\_id or channel\_name of a channel.
+
+**return** (optional)
+URL to redirect to after removing entries from the database. Follows the template\_group/template\_name convention.
+
+**list** (optional)
+The list name to remove or remove entries from. Default value is 'default'
+
+**member_id** (optional)
+member\_id of the member to remove the entries from. Defaults to currently logged in member.
+
+
+#### Examples
+
+    // Remove the entire 'saved_shoppingcart' list from the database
+    {exp:remember_me:remove list='saved_shoppingcart' return='products/index'}
+    
+    // Remove entry 232 from the list 'My birthday wishlist'
+    {exp:remember_me:remove list='My birthday wishlist' entry_id='232' return='account/whishlists'}
+    
+
+---
+
+### {exp:remember_me:lists}
+
+This tag will output all lists saved by a particular member. The tag {list_items} is used to output the entry\_ids in that list.
+
+#### Parameters
+
+**channel** (optional)
+Filter the returned items in the list by channel. Either the channel\_id or channel\_name of a channel.
+
+**reverse** (optional)
+Reverse the order of the returned items within a list. [ yes | no* ]
+
+**show\_empty** (optional)
+When returning lists and filtering by channel, a list may return no items. By default they aren't shown, but this parameter will allow you to show it anyway. [ yes | no* ]
+
+**member\_id** (optional)
+member\_id of the member to show the list for. Defaults to currently logged in member.
+
+
+#### Examples
+
+    // Show all lists belonging to member 45. Handy if you want to allow members to make public wishlists
+    <ul class="db-storage">
+      {exp:remember_me:lists parse='inward' member_id='45'}
+        {if no_results}<li class="no_lists">No lists saved</li>{/if}
+      <li>
+        <h5>{list_name}</h5>
+        <ul>
+          {exp:channel:entries dynamic='no' entry_id='{list_items}'}
+            <li>{entry_id}) {title} <a href="{path=plugins/remember_me/remove_entry/{list_name}/{entry_id}}">Remove</a></li>
+          {/exp:channel:entries}
+        </ul>
+      </li>
+      {/exp:remember_me:lists}
+    </ul>  
+    
+
+---
+
+
+
+
     
 ## Changelog
 

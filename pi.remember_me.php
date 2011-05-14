@@ -346,12 +346,7 @@ class Remember_me {
 
 	}
 	// END lists
-	
-	function debug()
-	{
-	  return print_r($this->_storage, TRUE);
-	}
-	
+		
 	
 	//============================================
 	// INTERNAL FUNCTIONS
