@@ -1,4 +1,4 @@
-<?php if (!defined('EXT')) exit('Invalid file request');
+<?php if ( ! defined('EXT')) exit('Invalid file request');
 
 if (session_id() == '')
 {
@@ -43,14 +43,34 @@ class Remember_me {
 	*
 	* @var	integer
 	*/
-  var $_current_site = 1;
+  private $_current_site = 1;
+
+  private $_entry_id = 0;
+  private $_channel = FALSE;
+  private $_return = FALSE;
+  private $_reverse = FALSE;
+  private $_list = 'default';
+  private $_show_empty = FALSE;
+  private $_set = FALSE;
+  private $_append = FALSE;
+  private $_clear = FALSE;
+
+  private $_dynamic_params = array();
 
 	/**
 	* Member id of the currently logged in member
 	*
 	* @var	integer
 	*/
-  var $_member_id = 0;
+  private $_member_id = 0;
+
+	/**
+	* Array of parameters that are allowed to be set dynamically
+	*
+	* @var	array
+	*/
+  private $_allowed_dynamic_params = array('entry_id', 'return', 'channel', 'reverse', 'list', 'append', 'member_id', 'set', 'show_empty', 'clear');
+
 
 	/**
 	* PHP4 Constructor
@@ -71,31 +91,17 @@ class Remember_me {
 	{
 
 		$this->EE =& get_instance();
+				
+    $this->_storage = isset($_SESSION[strtolower(__CLASS__)]) ? $_SESSION[strtolower(__CLASS__)] : array();
 
-    $this->_storage = (isset($_SESSION['remember_me'])) ? $_SESSION['remember_me'] : array();
-    
-    $this->_entry_id = $this->EE->TMPL->fetch_param('entry_id') ? $this->_entry_exists($this->EE->TMPL->fetch_param('entry_id'), TRUE) : FALSE;
-    $this->_channel = $this->EE->TMPL->fetch_param('channel') ? $this->_channel_exists($this->EE->TMPL->fetch_param('channel')) : FALSE;
-    $this->_return = $this->EE->TMPL->fetch_param('return');
-    $this->_reverse = ($this->EE->TMPL->fetch_param('reverse') == 'yes') ? TRUE : FALSE;
+    $this->_fetch_all_params();
 
-    $this->_list = $this->EE->TMPL->fetch_param('list') ? $this->EE->TMPL->fetch_param('list') : 'default';
-    $this->_show_empty = ($this->EE->TMPL->fetch_param('show_empty') == 'yes') ? TRUE : FALSE;
-    $this->_set = ($this->EE->TMPL->fetch_param('set') == 'yes') ? TRUE : FALSE;
-    $this->_append = ($this->EE->TMPL->fetch_param('append') == 'yes') ? TRUE : FALSE;
+		$this->EE->TMPL->log_item(__CLASS__ . ': Fetched storage ('.implode(',', array_keys($this->_storage)).')');
 
-//    $this->_dynamic_params = ($this->EE->TMPL->fetch_param('dynamic_params') == 'yes') ? TRUE : FALSE;
-        
-    if( $this->EE->TMPL->fetch_param('member_id') && is_numeric($this->EE->TMPL->fetch_param('member_id')) )
-    {
-      $this->_member_id = (int) $this->EE->TMPL->fetch_param('member_id');
-    } else {
-      $this->_member_id = isset($this->EE->session->userdata['member_id']) ? $this->EE->session->userdata['member_id'] : 0;
-    }
-    
     $this->_current_site = $this->EE->config->item('site_id');
 	}
 	// END __construct
+	
 	
 	/**
 	* Save entries to session storage
@@ -104,15 +110,16 @@ class Remember_me {
 	*/
 	function set()
 	{
-	  	  
-    if ( $entry = $this->_entry_exists($this->_entry_id) )
+
+    if ($entry = $this->_entry_exists($this->_entry_id))
     {
       $this->_storage[$this->_entry_id] = $entry;
-      $this->_save_storage();
-      
+      $this->_save_storage();      
     }
-    
-    $this->_redirect();
+    else
+    {
+      $this->_redirect();      
+    }
 	  
 	}
 	// END set
@@ -124,16 +131,13 @@ class Remember_me {
 	*/
 	function get()
 	{
-
-	  if( $this->_entry_id !== FALSE )
+	  if ($this->_entry_id !== FALSE)
 	  {
-	    
   	  // entry_id parameter has been specified
 	    return $this->_get_entry($this->_storage);
-	    
 	  }
 
-	  if( $this->_channel !== FALSE )
+	  if ($this->_channel !== FALSE)
 	  {
   	  // channel parameter has been specified
 	    return $this->_get_where_channel($this->_storage);
@@ -151,24 +155,24 @@ class Remember_me {
 	*/
 	function clear()
 	{
-	  
+	  	  
 	  if( $this->_entry_id !== FALSE )
 	  {
-      
   	  // entry_id parameter has been specified
 	    $this->_clear_entry( $this->_entry_id );
-	    
-	  } else if( $this->_channel !== FALSE ) {
-	    
+	  }
+	  else if ($this->_channel !== FALSE)
+	  {
 	    // channel parameter has been specified
 	    $this->_clear_where_channel($this->_channel);
-	    
-	  } else {
-	    
+	  }
+	  else
+	  {  
 	    // clear the entire storage
-      $this->_clear_all();
-      
-	  }	  
+      $this->_clear_all(); 
+	  }
+	  
+	  $this->_redirect();	  
 
 	}
 	// END clear
@@ -184,13 +188,23 @@ class Remember_me {
 	  $lists = $this->_fetch_from_database();
 	  
     $current = isset($lists[$this->_list]) ? $lists[$this->_list] : array();
-	 	
-    if( $this->_append === TRUE )
+    
+    if ($this->_entry_id)
     {
-      
-      $items = ( $this->_channel ) ? $this->_filter_by_channel($this->_storage) : $this->_storage;
+      $entry = $this->_entry_exists($this->_entry_id);
+      $items = array($this->_entry_id => $entry);
+    }
+    else
+    {
+      $items = $this->_storage;      
+    }
+
+    $items = ( $this->_channel ) ? $this->_filter_by_channel($items) : $items;
+
+    if ($this->_append === TRUE)
+    {
         	  
-      foreach( $items as $entry_id => $item )
+      foreach ($items as $entry_id => $item)
       {
         $current[$entry_id] = $item;
       }
@@ -199,18 +213,23 @@ class Remember_me {
       
     } else {
       
-      $lists[$this->_list] = $this->_storage;
+      $lists[$this->_list] = $items;
       
-    }
+    }    
     
     // If the list has no entries at all, remove it entirely
-    if(count($lists[$this->_list]) === 0) unset($lists[$this->_list]);
+    if (count($lists[$this->_list]) === 0) unset($lists[$this->_list]);
 	  	  
 	  $data = array(
 	   'remember_me' => serialize($lists)
 	  );
 	  
 	  $this->_update_database($data);
+
+    if ($this->_clear === TRUE)
+    {
+      $this->_clear_all();
+    }
 	  
 	  $this->_redirect();
 
@@ -228,7 +247,7 @@ class Remember_me {
 	  $lists = $this->_fetch_from_database();
     
     // If list doesn't exists or there are no items saved in the list, abort attack.
-    if( ! is_array($lists) || ! isset($lists[$this->_list]) || count($lists[$this->_list]) === 0 ) return '';
+    if ( ! is_array($lists) OR ! isset($lists[$this->_list]) OR count($lists[$this->_list]) === 0 ) return '';
 
     $items = $lists[$this->_list];
     
@@ -245,16 +264,21 @@ class Remember_me {
     {
       $items = array_reverse($items, TRUE);
     }
-    
+        
     if( $this->_set )
     {
+      
+      if ($this->_append)
+      {
+        $items = $items + $this->_storage;
+      }
+      
       $this->_storage = $items;
+      
       $this->_save_storage();
-      return '';
+      $this->_redirect();
     }
-    
-    if( $this->_return ) $this->_redirect();
-	  
+        	  
     return implode('|', array_keys($items));
 	  
 	}
@@ -265,14 +289,22 @@ class Remember_me {
   */
 	function remove()
 	{
-	  switch($this->_list)
+	  
+	  if ($this->_list === 'all')
 	  {
-	    default:
-	      $this->_remove_from_database_where_list($this->_list);
-	      break;
-	    case 'all':
-	      $this->_clear_database();
-	      break;
+      $this->_clear_database();
+	  }
+	  else
+	  {
+	    
+	    if ($this->_entry_id)
+	    {
+	      $this->_remove_entry_from_list();	    
+	    }
+	    else
+	    {
+        $this->_remove_list();	    	      
+	    }
 	  }
 	  
 	  $this->_redirect();
@@ -285,6 +317,7 @@ class Remember_me {
   */
 	function lists()
 	{
+	  
 	  $results = array();
 	  
     $lists = $this->_fetch_from_database();
@@ -301,7 +334,7 @@ class Remember_me {
       $items = $this->_reverse_entries($items);
       
       // If a list has no items and show_empty is not true, do not include in output
-      if( count($items) === 0 && $this->_show_empty === FALSE ) continue;
+      if( count($items) === 0 AND $this->_show_empty === FALSE ) continue;
       
       $results[] = array(
         'list_name' => $list_name,
@@ -314,6 +347,11 @@ class Remember_me {
 	}
 	// END lists
 	
+	function debug()
+	{
+	  return print_r($this->_storage, TRUE);
+	}
+	
 	
 	//============================================
 	// INTERNAL FUNCTIONS
@@ -324,10 +362,9 @@ class Remember_me {
   * @todo
   */	
 	function _get_entry( $haystack=array() )
-	{
-	  	  
+	{	  	  
 	  // If entry_id is not set, abandon ship
-    if( $this->_entry_id === FALSE || count($haystack) === 0 ) return 0;
+    if( $this->_entry_id === FALSE OR count($haystack) === 0 ) return 0;
 	      
     return isset($haystack[$this->_entry_id]) ? 1 : 0;
     
@@ -339,8 +376,7 @@ class Remember_me {
   * @todo
   */	
 	function _get_all()
-	{
-	      
+	{	      
 	  $results = array_keys($this->_storage);
     $results = $this->_reverse_entries($results);
 
@@ -377,26 +413,56 @@ class Remember_me {
     
     // Does the remember_me column exist? If not, create it!
 	  if( ! $this->_column_exists() ) return array();
-        
-    $query = $this->EE->db
-                        ->select('remember_me')
-                        ->from('members')
-                        ->where('members.member_id', $this->_member_id)
-                        ->where('member_groups.site_id', $this->_current_site)
-                        ->join('member_groups', 'members.group_id = member_groups.group_id')
-                        ->get();
+
+    if ( ! isset($this->EE->session->cache[__CLASS__][$this->_current_site][$this->_member_id]['storage']))
+    {
+      $query = $this->EE->db
+                          ->select('remember_me')
+                          ->from('members')
+                          ->where('members.member_id', $this->_member_id)
+                          ->where('member_groups.site_id', $this->_current_site)
+                          ->join('member_groups', 'members.group_id = member_groups.group_id')
+                          ->get();
+
+      $this->EE->session->cache[__CLASS__][$this->_current_site][$this->_member_id]['storage'] = $query->row('remember_me');      
+    }
     
-    if($query->num_rows() > 0) return unserialize($query->row('remember_me'));
+    $data = unserialize($this->EE->session->cache[__CLASS__][$this->_current_site][$this->_member_id]['storage']);
     
-    return array();
+    return is_array($data) ? $data : array();
     
   }
   
+  function _remove_entry_from_list()
+  {
+    $lists = $this->_fetch_from_database();
+
+    // If list doesn't exists or there are no items saved in the list, abort attack.
+    if ( ! isset($lists[$this->_list]) ) return FALSE;
+    
+    if (isset($lists[$this->_list][$this->_entry_id]))
+    {
+      unset($lists[$this->_list][$this->_entry_id]);
+    }
+    
+    if (count($lists[$this->_list]) === 0)
+    {
+      unset($lists[$this->_list]);
+    }
+    
+    $data = array(
+	   'remember_me' => serialize($lists)
+	  );
+	  
+	  $this->_update_database($data);
+    
+    
+  }
   
   /**
   * @todo
   */
-  function _remove_from_database_where_list()
+  function _remove_list()
   {
 
     $lists = $this->_fetch_from_database();
@@ -438,7 +504,7 @@ class Remember_me {
   */
 	function _clear_entry($entry_id=FALSE)
 	{
-	  
+	  	  
 	  // If entry_id is not set, abandon ship
     if( $entry_id == FALSE ) return FALSE;
 	      
@@ -457,7 +523,6 @@ class Remember_me {
   */
 	function _update_database($data=array())
 	{
-	  
 	  // Insert items into the database
 	  $this->EE->db->where('member_id', $this->_member_id)->update('members', $data);
     
@@ -514,13 +579,13 @@ class Remember_me {
   */
   function _save_storage()
   {    
-        
-    if( isset($_SESSION['remember_me']) ) unset($_SESSION['remember_me']);      
+    $this->EE->TMPL->log_item(__CLASS__ . ': Saving storage ('.implode(',', array_keys($this->_storage)).')');
+    
+    if( isset($this->EE->session->userdata[strtolower(__CLASS__)]) ) unset($this->EE->session->userdata[strtolower(__CLASS__)]);      
 
-    // Save storage to cookie    
-    $_SESSION['remember_me'] = $this->_storage;
-        
-    $this->_redirect();    
+    // Save storage to session
+    $_SESSION[strtolower(__CLASS__)] = $this->_storage;
+    
       
   }
   
@@ -531,7 +596,7 @@ class Remember_me {
   function _redirect()
   {
     // If return URL has been set and it is not an Ajax call, redirect
-    if( $this->_return && !isset($_SERVER['X_HTTP_REQUESTED_WITH']) )
+    if( $this->_return AND ! isset($_SERVER['X_HTTP_REQUESTED_WITH']) )
     {
       $this->EE->functions->redirect( $this->EE->functions->create_url($this->_return) );
     }
@@ -548,20 +613,24 @@ class Remember_me {
 	*/
   function _entry_exists($in = FALSE, $return_id=FALSE) {
 
-    if( $in === FALSE )
+    if ($in === FALSE)
     {
       $in = $this->EE->uri->query_string;
     }
-
-    $results = $this->EE->db->select("entry_id, CAST(channel_id AS UNSIGNED) AS channel_id")
-                   ->where("(entry_id = '$in' OR url_title = '$in') AND site_id='".$this->_current_site."'")
-                   ->get('channel_titles');
     
-    if( $results->num_rows() > 0 )
+    $entry = array();
+    
+    if ( ! isset($this->EE->session->cache[__CLASS__][$this->_current_site]['entries']) OR ! isset($this->EE->session->cache[__CLASS__][$this->_current_site]['entries'][$in]))
     {
-      return ($return_id) ? (int) $results->row('entry_id') : $results->row_array();
+      $this->EE->db->select("entry_id, CAST(channel_id AS UNSIGNED) AS channel_id");
+      $this->EE->db->where("(entry_id = '$in' OR url_title = '$in') AND site_id='".$this->_current_site."'");
+      $this->EE->session->cache[__CLASS__][$this->_current_site]['entries'][$in] = $this->EE->db->get('channel_titles');
     }
     
+    $results = $this->EE->session->cache[__CLASS__][$this->_current_site]['entries'][$in];
+    
+    return $return_id ? (int) $results->row('entry_id') : $results->row_array();
+        
     return FALSE;
   }
 	// END _entry_exists
@@ -573,7 +642,7 @@ class Remember_me {
 	* @return	mixed [integer|boolean]
 	*/
   function _channel_exists($channel=FALSE) {
-    
+		
     if( $channel == FALSE ) return FALSE;
 
  	  $this->EE->db->select('channel_id')
@@ -624,14 +693,14 @@ class Remember_me {
   */
   function _filter_by_channel($haystack=array())
   {
-    
-    if( ! $this->_channel || count($haystack) === 0 ) return $haystack;
+		
+    if ( ! $this->_channel OR count($haystack) === 0) return $haystack;
     
     $results = array();
         
-    foreach ( $haystack as $key => $entry )
+    foreach ($haystack as $key => $entry)
     {      
-      if( (int) $entry['channel_id'] === $this->_channel )
+      if ((int) $entry['channel_id'] === $this->_channel)
       {
         $results[$key] = $entry;
       }
@@ -647,13 +716,80 @@ class Remember_me {
   */
   function _reverse_entries($items)
   {
-    if( is_array($items) && $this->_reverse === TRUE )
+        
+    if (is_array($items) AND $this->_reverse === TRUE)
     {
       $items = array_reverse($items);
     }
     
     return $items;
   }
+  
+	function _fetch_all_params()
+	{
+	  	
+    $this->_dynamic_params = array_intersect($this->_allowed_dynamic_params, explode('|', (string) $this->EE->TMPL->fetch_param('dynamic_params')));
+    
+    $this->_entry_id = $this->_fetch_param('entry_id') ? $this->_entry_exists($this->_fetch_param('entry_id'), TRUE) : FALSE;
+    $this->_channel = $this->_fetch_param('channel') ? $this->_channel_exists($this->_fetch_param('channel')) : FALSE;
+    
+    $this->_return = $this->_fetch_param('return');
+    $this->_reverse = $this->_fetch_param_bool('reverse');
+
+    $this->_list = $this->_fetch_param('list') ? $this->_fetch_param('list') : 'default';
+    $this->_show_empty = $this->_fetch_param_bool('show_empty');
+    $this->_set = $this->_fetch_param_bool('set');
+    $this->_append = $this->_fetch_param_bool('append');
+    $this->_clear = $this->_fetch_param_bool('clear');
+        
+    if ($this->_fetch_param('member_id') AND is_numeric($this->_fetch_param('member_id')))
+    {
+      $this->_member_id = (int) $this->EE->TMPL->fetch_param('member_id');
+    }
+    else
+    {
+      $this->_member_id = isset($this->EE->session->userdata['member_id']) ? $this->EE->session->userdata['member_id'] : 0;
+    }
+  }  
+  
+  function _fetch_param($param='', $default=FALSE)
+  {
+    if ($param === '') return $default;
+    
+    $val = FALSE;
+
+    if (in_array($param, $this->_dynamic_params))
+    {
+      $val =  $this->EE->input->get_post($param);
+    }
+    
+    if ($val === FALSE)
+    {
+      $val = $this->EE->TMPL->fetch_param($param);
+    }
+    
+    return $val ? $val : $default;
+      
+  }
+  
+  function _fetch_param_bool($param='', $default=FALSE)
+  {
+
+    $val = $this->_fetch_param($param, $default);
+
+    if ($val === $default) return $val;
+    
+    switch($val)
+    {
+      default: $val = $default; break;
+      case 'y': case 'yes': case 'true': case '1': $val = TRUE; break;
+      case 'n': case 'no': case 'false': case '0': $val = FALSE; break;
+    }
+
+    return $val;
+      
+  }
+  
 	
 
 	/**
@@ -738,12 +874,4 @@ class Remember_me {
 
 }
 // END CLASS
-if( ! function_exists('debug') )
-{
-  function debug($val, $exit=true)
-  {
-    echo "<pre>".print_r($val, true)."</pre>";
-    if($exit) exit;
-  } 
-}
 /* End of file pi.remember_me.php */
