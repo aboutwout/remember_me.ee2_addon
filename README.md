@@ -3,6 +3,8 @@ Remember Me
 
 Save entries for a user during a session. This could be used for a 'add to cart' function or for a 'product compare' function (save entry_id's for later use). Entries are only stored during a session.
 
+As of version 1.0 you can also save the session storage to the database on a per member basis.
+
 
 ## Tags
 
