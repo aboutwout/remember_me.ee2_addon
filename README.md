@@ -6,15 +6,15 @@ Save entries for a user during a session. This could be used for a 'add to cart'
 As of version 1.0 you can also save the session storage to the database on a per member basis.
 
 
-## Tags
+# Tags
 
 ---
 
-### {exp:remember_me:set}
+## {exp:remember_me:set}
 
 Save entry id’s to session storage. Session storage is cleared when the session expires. If no entry_id is specified, Remember Me will try to discover the currently viewed entry based on the last URL segment.
 
-#### Parameters
+### Parameters
 
 **entry\_id** (optional)
 The entry\_id or url\_title of the entry you want to save to storage.
@@ -22,7 +22,7 @@ The entry\_id or url\_title of the entry you want to save to storage.
 **return** (optional)
 The URL to redirect to after saving an entry to storage redirect. Follows the template\_group/template\_name convention.
 
-#### Examples
+### Examples
 
     // Save entry to storage
     {exp:remember_me:set}
@@ -34,9 +34,9 @@ The URL to redirect to after saving an entry to storage redirect. Follows the te
 
 ---
 
-### {exp:remember_me:get}
+## {exp:remember_me:get}
 
-#### Parameters
+### Parameters
     
 **entry_id** (optional)
 Check wether an entry is in storage. Value can either be a an url\_title or entry\_id.
@@ -48,7 +48,7 @@ Filter the returned dataset by channel\_id or channel\_name
 Reverse the order of the entries
    
    
-#### Examples
+### Examples
 
     // Get all entries from storage
     {exp:remember_me:get}
@@ -68,9 +68,9 @@ Reverse the order of the entries
     
 ---
 
-### {exp:remember_me:clear}
+## {exp:remember_me:clear}
 
-#### Parameters
+### Parameters
 
 **entry_id** (optional)
 Check wether an entry is in storage. Value can either be a an url\_title or entry\_id.
@@ -82,7 +82,7 @@ Filter the returned dataset by channel\_id or channel\_name
 The URL to redirect to. Follows the template\_group/template\_name convention.
 
 
-#### Examples
+### Examples
 
     // Clear entire storage
     {exp:remember_me:clear return='group/template'}
@@ -95,9 +95,9 @@ The URL to redirect to. Follows the template\_group/template\_name convention.
 
 ---
 
-### {exp:remember_me:save}
+## {exp:remember_me:save}
 
-#### Parameters
+### Parameters
 
 **entry_id** (optional)
 Check wether an entry is in storage. Value can either be a an url\_title or entry\_id.
@@ -121,7 +121,7 @@ Clear session storage after saving it to the database. [ yes | no* ]
 member\_id of the member to assigne the entries to. Defaults to currently logged in member.
 
 
-#### Examples
+### Examples
 
     // Save the entire storage to the list 'default'
     {exp:remember_me:save return='products/index'}
@@ -137,9 +137,9 @@ member\_id of the member to assigne the entries to. Defaults to currently logged
 
 ---
 
-### {exp:remember_me:load}
+## {exp:remember_me:load}
 
-#### Parameters
+### Parameters
 
 **entry_id** (optional)
 Check wether an entry is stored in the database. Value can either be a an url\_title or entry\_id.
@@ -166,7 +166,7 @@ When using the 'set' parameter this parameter allows you to append the loaded it
 member\_id of the member to load the entries from. Defaults to currently logged in member.
 
 
-#### Examples
+### Examples
 
 
     // Output items from list 'default'.
@@ -184,9 +184,9 @@ member\_id of the member to load the entries from. Defaults to currently logged 
 
 ---
 
-### {exp:remember_me:remove}
+## {exp:remember_me:remove}
 
-#### Parameters
+### Parameters
 
 **channel** (optional)
 Remove only those entries that belong to a particular channel. Either the channel\_id or channel\_name of a channel.
@@ -201,7 +201,7 @@ The list name to remove or remove entries from. Default value is 'default'
 member\_id of the member to remove the entries from. Defaults to currently logged in member.
 
 
-#### Examples
+### Examples
 
     // Remove the entire 'saved_shoppingcart' list from the database
     {exp:remember_me:remove list='saved_shoppingcart' return='products/index'}
@@ -212,11 +212,11 @@ member\_id of the member to remove the entries from. Defaults to currently logge
 
 ---
 
-### {exp:remember_me:lists}
+## {exp:remember_me:lists}
 
 This tag will output all lists saved by a particular member. The tag {list_items} is used to output the entry\_ids in that list.
 
-#### Parameters
+### Parameters
 
 **channel** (optional)
 Filter the returned items in the list by channel. Either the channel\_id or channel\_name of a channel.
@@ -231,7 +231,7 @@ When returning lists and filtering by channel, a list may return no items. By de
 member\_id of the member to show the list for. Defaults to currently logged in member.
 
 
-#### Examples
+### Examples
 
     // Show all lists belonging to member 45. Handy if you want to allow members to make public wishlists
     <ul class="db-storage">
