@@ -346,6 +346,34 @@ class Remember_me {
 	// END lists
 		
 	
+	
+	// TODO
+	function count()
+	{
+	  
+	  $what = $this->_fetch_param('what', 'session');
+    
+	  return $this->{"_count_$what"}();
+	  
+	}
+	
+	// TODO
+	function _count_session()
+	{
+	  $this->_return = FALSE;
+	  $items = $this->get();	  
+	  return count(explode('|', $items));
+	}
+	
+	function _count_database()
+	{
+	  $this->_return = FALSE;
+	  $items = $this->load();	  
+	  return count(explode('|', $items));
+	}
+
+
+	
 	//============================================
 	// INTERNAL FUNCTIONS
 	//============================================

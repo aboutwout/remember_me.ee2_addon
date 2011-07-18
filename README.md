@@ -251,6 +251,13 @@ member\_id of the member to show the list for. Defaults to currently logged in m
 
 ---
 
+## {exp:remember_me:count}
+
+### Parameters
+
+**what**
+session or database
+
 
 
 
