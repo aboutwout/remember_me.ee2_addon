@@ -366,6 +366,11 @@ class Remember_me {
 	{
 	  $this->_return = FALSE;
 	  $items = $this->get();	  
+	  if ($items == '')
+	  {
+	    return 0;	    
+	  }
+
 	  return count(explode('|', $items));
 	}
 	
@@ -373,6 +378,12 @@ class Remember_me {
 	{
 	  $this->_return = FALSE;
 	  $items = $this->load();	  
+	  
+	  if ($items == '')
+	  {
+	    return 0;	    
+	  }
+	  
 	  return count(explode('|', $items));
 	}
 
