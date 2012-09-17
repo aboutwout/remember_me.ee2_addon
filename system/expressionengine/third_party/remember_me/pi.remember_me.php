@@ -7,7 +7,7 @@ if (session_id() == '')
 
 $plugin_info = array(
 	'pi_name'			=> 'Remember Me',
-	'pi_version'		=> '1.1',
+	'pi_version'		=> '1.1.1',
 	'pi_author'			=> 'Wouter Vervloet',
 	'pi_author_url'		=> 'http://www.baseworks.nl/',
 	'pi_description'	=> 'Save entries for a user to do something with them on (another) page.',
@@ -346,10 +346,35 @@ class Remember_me {
 	// END lists
 		
 	
+	// TODO
+	function count()
+	{
+	  
+	  $what = $this->_fetch_param('what', 'session');
+    
+	  return $this->{"_count_$what"}();
+	  
+	}
+	
+	
 	//============================================
 	// INTERNAL FUNCTIONS
 	//============================================
 
+	// TODO
+	function _count_session()
+	{
+	  $this->_return = FALSE;
+	  $items = $this->get();	  
+	  return count(explode('|', $items));
+	}
+	
+	function _count_database()
+	{
+	  $this->_return = FALSE;
+	  $items = $this->load();	  
+	  return count(explode('|', $items));
+	}
 
   /**
   * @todo
